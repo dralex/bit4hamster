@@ -5,11 +5,10 @@
 #
 # Hamster magnet counter program
 #
-# Author: Alexey Fedoseev <aleksey@fedoseev.net>, 2019
+# Author: Alexey Fedoseev <aleksey@fedoseev.net>, 2020
 # -----------------------------------------------------------------------------
 
 import microbit as m
-import math
 
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 13000
