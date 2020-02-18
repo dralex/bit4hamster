@@ -1,0 +1,10 @@
+bit4hamster: Micro:bit program collection for the hamster-lab project and research
+
+Author: Alexey Fedoseev, aleksey@fedoseev.net
+License: GPLv3
+
+This package includes the hamster-lab programs:
+
+* magnet-counter.py - Simple magnet counter based on the Hall sensor
+
+
