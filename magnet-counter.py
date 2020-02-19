@@ -9,7 +9,6 @@
 # -----------------------------------------------------------------------------
 
 import microbit as m
-import math
 
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 13000
