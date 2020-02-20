@@ -12,7 +12,8 @@ import microbit as m
 
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 13000
- 
+baseline = num = crossing = show_num = None
+
 def update_level(nu):
     n = int(nu / 400) + 1
     for i in range(5):
@@ -28,12 +29,16 @@ def update_display(to, cr, nu):
         m.display.set_pixel(2, 2, 9 if cr else 0)
         update_level(nu)
 
-baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
-num = 0
-crossing = False
-show_num = False
-update_display(show_num, crossing, num)
+def reset():
+    global baseline, num, crossing, show_num
+    baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
+    num = 0
+    crossing = False
+    show_num = False
+    m.display.clear()
+    update_display(show_num, crossing, num)
 
+reset()
 while True:
     field = m.compass.get_field_strength()
 
@@ -44,14 +49,10 @@ while True:
     elif crossing and abs(field - baseline) <= THRESHOLD:
 	crossing = False
 	update_display(show_num, crossing, num)
+
     if m.button_a.was_pressed():
         show_num = not show_num
 	if not show_num: m.display.clear()
         update_display(show_num, crossing, num)
     elif m.button_b.was_pressed():
-	baseline = m.compass.get_field_strength()
-	num = 0
-	crossing = False
-	show_num = False
-        m.display.clear()
-	update_display(show_num, crossing, num)
+        reset()
