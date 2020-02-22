@@ -69,7 +69,7 @@ def save_current_time():
     time_buf.append(last_change)
 
 def reset():
-    global baseline, num, crossing, show_num, file_num, time_to_sync, time_buf
+    global baseline, num, crossing, show_num, time_to_sync, time_buf
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
