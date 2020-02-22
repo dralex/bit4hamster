@@ -21,7 +21,7 @@ def update_display():
         m.display.show(num, wait=False, loop=True)
     else:
         m.display.set_pixel(0, 0, 9)
-        m.display.set_pixel(4, 4, 9 if crossing else 0)
+        m.display.set_pixel(4, 0, 9 if crossing else 0)
 
 def reset():
     global baseline, num, crossing, show_num, last_change
