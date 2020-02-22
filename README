@@ -8,4 +8,4 @@ See the project blog and plans here: https://clck.ru/MFG4t (in Russian)
 This package includes the hamster-lab programs:
 
 * magnet-counter.py - Simple magnet counter based on the Hall sensor
-
+* magnet-collector.py - Magnet counter with statistics collection
