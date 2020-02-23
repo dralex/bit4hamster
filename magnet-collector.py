@@ -14,7 +14,7 @@ import microbit as m
 
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 13000
-TIME_LIMIT = 300
+TIME_LIMIT = 400
 SYNC_DELAY = 3000 # sync on 3 sec delay
 FILENAME = 'log{}.txt'
 MEMORY_LIMIT = 500
