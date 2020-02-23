@@ -80,7 +80,8 @@ def reset():
     calculate_files()
     time_to_sync = False
     buf_size = 0
-    time_buf = [0] * MEMORY_LIMIT
+    if time_buf is None:
+        time_buf = [0] * MEMORY_LIMIT
     save_current_time()
     m.display.clear()
     update_display()
@@ -95,7 +96,7 @@ while True:
         if t - last_change > TIME_LIMIT:
             num = num + 1
             save_current_time()
-            time_to_sync = len(time_buf) > MEMORY_TO_SYNC
+            time_to_sync = buf_size > MEMORY_TO_SYNC
         update_display()
     elif crossing and abs(field - baseline) <= THRESHOLD:
         crossing = False
