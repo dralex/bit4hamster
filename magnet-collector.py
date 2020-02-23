@@ -17,8 +17,10 @@ THRESHOLD = 13000
 TIME_LIMIT = 300
 SYNC_DELAY = 3000 # sync on 3 sec delay
 FILENAME = 'log{}.txt'
-MEMORY_LIMIT = 200
-baseline = num = crossing = show_num = file_num = last_change = time_to_sync = time_buf = None
+MEMORY_LIMIT = 500
+MEMORY_TO_SYNC = MEMORY_LIMIT / 2
+baseline = num = crossing = show_num = file_num = last_change = None
+time_to_sync = time_buf = buf_size = None
 
 def update_display():
     if show_num:
@@ -54,29 +56,31 @@ def remove_files():
         os.remove(f)
 
 def sync_buf():
-    global file_num, time_to_sync, time_buf
+    global file_num, time_to_sync, time_buf, buf_size
     f = open(FILENAME.format(file_num), 'w')
-    for x in time_buf:
-        f.write("{}\n".format(x))
+    for i in range(buf_size):
+        f.write("{}\n".format(time_buf[i]))
     f.close()
     file_num += 1
     time_to_sync = False
-    del time_buf[:]
+    buf_size = 0
 
 def save_current_time():
-    global last_change, time_buf
+    global last_change, time_buf, buf_size
     last_change = time.ticks_ms()
-    time_buf.append(last_change)
+    time_buf[buf_size] = last_change
+    buf_size += 1
 
 def reset():
-    global baseline, num, crossing, show_num, time_to_sync, time_buf
+    global baseline, num, crossing, show_num, time_to_sync, time_buf, buf_size
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
     show_num = False
     calculate_files()
     time_to_sync = False
-    time_buf = []
+    buf_size = 0
+    time_buf = [0] * MEMORY_LIMIT
     save_current_time()
     m.display.clear()
     update_display()
@@ -91,13 +95,13 @@ while True:
         if t - last_change > TIME_LIMIT:
             num = num + 1
             save_current_time()
-            time_to_sync = len(time_buf) > MEMORY_LIMIT
+            time_to_sync = len(time_buf) > MEMORY_TO_SYNC
         update_display()
     elif crossing and abs(field - baseline) <= THRESHOLD:
         crossing = False
         update_display()
 
-    if time_to_sync and t - last_change > SYNC_DELAY:
+    if buf_size == MEMORY_LIMIT or (time_to_sync and t - last_change > SYNC_DELAY):
         sync_buf()
         update_display()
 
