@@ -14,7 +14,9 @@ import microbit as m
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 13000
 TIME_LIMIT = 300
-baseline = num = crossing = show_num = last_change = None
+SYNC_TIME = 3600000 # 1 hour
+FILENAME = 'log.txt'
+baseline = num = crossing = show_num = last_change = num_buf = last_sync = None
 
 def update_display():
     if show_num:
@@ -24,14 +26,24 @@ def update_display():
         m.display.set_pixel(4, 4, 9 if crossing else 0)
 
 def reset():
-    global baseline, num, crossing, show_num, last_change
+    global baseline, num, crossing, show_num, last_change, num_buf, last_sync
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
     show_num = False
-    last_change = time.ticks_ms()
+    num_buf = []
+    last_change = last_sync = time.ticks_ms()
     m.display.clear()
     update_display()
+
+def sync_num():
+    global num_buf, last_sync
+    last_sync = time.ticks_ms()
+    num_buf.append((last_sync, num))
+    f = open(FILENAME, 'w')
+    for tm, n in num_buf:
+        f.write("{} {}\n".format(tm, n))
+    f.close()
 
 reset()
 while True:
@@ -47,6 +59,9 @@ while True:
     elif crossing and abs(field - baseline) <= THRESHOLD:
         crossing = False
         update_display()
+
+    if t - last_sync > SYNC_TIME:
+        sync_num()
 
     if m.button_a.was_pressed():
         show_num = not show_num
