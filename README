@@ -9,4 +9,5 @@ This package includes the hamster-lab programs:
 
 * magnet-counter.py - Simple magnet counter based on the Hall sensor
 * magnet-collector.py - Magnet counter with statistics collection
+* magnet-histogram.py - Frequency histogram builder based on a magnet counter 
 * testmem.py - Micro:bit memory limit testing program
