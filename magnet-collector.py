@@ -88,8 +88,8 @@ def reset():
     buf_size = 0
     if time_buf is None:
         time_buf = [0] * MEMORY_LIMIT
-    last_hour = 0
     save_current_time()
+    last_hour = last_change
     m.display.clear()
     update_display()
 
