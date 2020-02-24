@@ -19,31 +19,35 @@ SYNC_DELAY = 3000 # sync on 3 sec delay
 FILENAME = 'log{}.txt'
 MEMORY_LIMIT = 500
 MEMORY_TO_SYNC = MEMORY_LIMIT / 2
+HOUR = 3600000 # 1 hour
+HOURLY_INTERVAL = HOUR / 6 # 10 minutes
 baseline = num = crossing = show_num = file_num = last_change = None
-time_to_sync = time_buf = buf_size = None
+last_hour = saving = time_to_sync = time_buf = buf_size = None
 
 def update_display():
     if show_num:
         m.display.show(num, wait=False, loop=True)
     else:
+        light = 9 if saving else 1
+
         file_rows = int(file_num / 5)
         file_columns = file_num % 5
 
         for i in range(5):
             if i < file_rows:
                 for j in range(5):
-                    m.display.set_pixel(j, i, 9)
+                    m.display.set_pixel(j, i, light)
             elif i == file_rows:
                 for j in range(5):
                     if j <= file_columns:
-                        m.display.set_pixel(j, i, 9)
+                        m.display.set_pixel(j, i, light)
                     else:
                         m.display.set_pixel(j, i, 0)
             else:
                 for j in range(5):
                     m.display.set_pixel(j, i, 0)
 
-        m.display.set_pixel(4, 4, 9 if crossing else 0)
+        m.display.set_pixel(4, 4, light if crossing else 0)
 
 def calculate_files():
     global file_num
@@ -72,16 +76,19 @@ def save_current_time():
     buf_size += 1
 
 def reset():
-    global baseline, num, crossing, show_num, time_to_sync, time_buf, buf_size
+    global baseline, num, crossing, show_num, time_to_sync, time_buf
+    global buf_size, saving, last_hour
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
     show_num = False
+    saving = False
     calculate_files()
     time_to_sync = False
     buf_size = 0
     if time_buf is None:
         time_buf = [0] * MEMORY_LIMIT
+    last_hour = 0
     save_current_time()
     m.display.clear()
     update_display()
@@ -91,9 +98,19 @@ while True:
     field = m.compass.get_field_strength()
     t = time.ticks_ms()
 
+    if not saving and t > last_hour and t - last_hour < HOURLY_INTERVAL:
+        saving = True
+        update_display()
+    elif saving and t - last_hour >= HOURLY_INTERVAL:
+        saving = False
+        if buf_size > 0:
+            time_to_sync = True
+        last_hour += HOUR # plus 1 hour
+        update_display()
+
     if not crossing and abs(field - baseline) > THRESHOLD:
         crossing = True
-        if t - last_change > TIME_LIMIT:
+        if saving and t - last_change > TIME_LIMIT:
             num = num + 1
             save_current_time()
             time_to_sync = buf_size > MEMORY_TO_SYNC
