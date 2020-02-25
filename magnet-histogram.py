@@ -12,7 +12,7 @@ import time
 import microbit as m
 
 # Choose the appropriate value based on the cage & wheel configuration
-THRESHOLD = 13000
+THRESHOLD = 12500
 TIME_LIMIT = 400
 SYNC_TIME = 3600000 # 1 hour
 FILENAME = 'histogram.txt'
@@ -47,6 +47,7 @@ def save_hist_value(d):
     hist_dict[index] += 1
 
 def sync_hist():
+    global last_sync
     f = open(FILENAME, 'w')
     for i in range(HIST_STEPS):
         f.write("{} {}\n".format(i * HIST_DELTA, hist_dict[i]))
@@ -70,7 +71,7 @@ while True:
         crossing = False
         update_display()
 
-    if t - last_sync > SYNC_TIME:
+    if t - last_sync >= SYNC_TIME:
         sync_hist()
 
     if m.button_a.was_pressed():
