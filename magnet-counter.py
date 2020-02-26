@@ -14,7 +14,7 @@ import microbit as m
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 13000
 TIME_LIMIT = 400
-SYNC_TIME = 3600000 # 1 hour
+SYNC_TIME = 1800000 # 30 min
 FILENAME = 'log.txt'
 baseline = num = crossing = show_num = last_change = num_buf = last_sync = None
 
