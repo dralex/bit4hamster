@@ -20,7 +20,7 @@ baseline = num = crossing = show_num = last_change = num_buf = last_sync = None
 
 def update_display():
     if show_num:
-        m.display.show(num, wait=False, loop=True)
+        m.display.show('{}.'.format(num), wait=False, loop=True)
     else:
         m.display.set_pixel(4, 0, 9)
         m.display.set_pixel(4, 4, 9 if crossing else 0)

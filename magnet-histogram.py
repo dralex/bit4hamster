@@ -23,7 +23,7 @@ baseline = num = crossing = show_num = last_change = hist_dict = last_sync = Non
 
 def update_display():
     if show_num:
-        m.display.show(num, wait=False, loop=True)
+        m.display.show('{}.'.format(num), wait=False, loop=True)
     else:
         m.display.set_pixel(0, 4, 9)
         m.display.set_pixel(4, 4, 9 if crossing else 0)
