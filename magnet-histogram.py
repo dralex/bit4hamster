@@ -16,8 +16,8 @@ THRESHOLD = 12500
 TIME_LIMIT = 400
 SYNC_TIME = 3600000 # 1 hour
 FILENAME = 'histogram.txt'
-HIST_STEPS = 25
-HIST_DELTA = 0.1
+HIST_STEPS = 250
+HIST_DELTA = 0.01
 HIST_ROUND_SIGNS = 1
 baseline = num = crossing = show_num = last_change = hist_dict = last_sync = None
 
