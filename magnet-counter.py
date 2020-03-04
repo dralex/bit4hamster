@@ -9,14 +9,15 @@
 # -----------------------------------------------------------------------------
 
 import time
+import os
 import microbit as m
 
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 13000
 TIME_LIMIT = 400
 SYNC_TIME = 1800000 # 30 min
-FILENAME = 'log.txt'
-baseline = num = crossing = show_num = last_change = num_buf = last_sync = None
+FILENAME = 'log{}.txt'
+baseline = num = crossing = show_num = last_change = num_buf = last_sync = file_num = None
 
 def update_display():
     if show_num:
@@ -24,6 +25,11 @@ def update_display():
     else:
         m.display.set_pixel(4, 0, 9)
         m.display.set_pixel(4, 4, 9 if crossing else 0)
+
+def calculate_files():
+    global file_num
+    ll = os.listdir()
+    file_num = len(ll)
 
 def reset():
     global baseline, num, crossing, show_num, last_change, num_buf, last_sync
@@ -33,6 +39,7 @@ def reset():
     show_num = False
     num_buf = []
     last_change = last_sync = time.ticks_ms()
+    calculate_files()
     m.display.clear()
     update_display()
 
@@ -40,7 +47,7 @@ def sync_num():
     global num_buf, last_sync
     last_sync = time.ticks_ms()
     num_buf.append((last_sync, num))
-    f = open(FILENAME, 'w')
+    f = open(FILENAME.format(file_num), 'w')
     for tm, n in num_buf:
         f.write("{} {}\n".format(tm, n))
     f.close()
