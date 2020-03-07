@@ -10,7 +10,7 @@
 
 import time
 import os
-import microbit as m
+import microbit as m # pylint: disable=import-error
 
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 12500
@@ -30,41 +30,41 @@ def update_display():
         m.display.set_pixel(4, 4, 9 if crossing else 0)
 
 def calculate_files():
-    global file_num
+    global file_num # pylint: disable=global-statement
     ll = os.listdir()
     file_num = len(ll)
 
 def reset():
-    global baseline, num, crossing, show_num, last_change, hist_dict, last_sync
+    global baseline, num, crossing, show_num, last_change, hist_dict, last_sync # pylint: disable=global-statement
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
     show_num = False
     hist_dict = [0] * HIST_STEPS
-    last_change = last_sync = time.ticks_ms()
+    last_change = last_sync = time.ticks_ms() # pylint: disable=no-member
     calculate_files()
     m.display.clear()
     update_display()
 
 def save_hist_value(d):
-    global hist_dict
+    global hist_dict # pylint: disable=global-statement
     index = int((1000.0 / d) / HIST_DELTA)
     if index >= HIST_STEPS:
         index = HIST_STEPS - 1
     hist_dict[index] += 1
 
 def sync_hist():
-    global last_sync
+    global last_sync # pylint: disable=global-statement
     f = open(FILENAME.format(file_num), 'w')
     for i in range(HIST_STEPS):
         f.write("{} {}\n".format(i * HIST_DELTA, hist_dict[i]))
     f.close()
-    last_sync = time.ticks_ms()
+    last_sync = time.ticks_ms() # pylint: disable=no-member
 
 reset()
 while True:
     field = m.compass.get_field_strength()
-    t = time.ticks_ms()
+    t = time.ticks_ms() # pylint: disable=no-member
 
     if not crossing and abs(field - baseline) > THRESHOLD:
         crossing = True
