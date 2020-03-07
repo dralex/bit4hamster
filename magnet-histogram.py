@@ -15,12 +15,14 @@ import microbit as m # pylint: disable=import-error
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 12500
 TIME_LIMIT = 400
-SYNC_TIME = 3600000 # 1 hour
-FILENAME = 'histogram{}.txt'
+SYNC_TIME = 1800000 # 30 min
+LOG_FILENAME = 'log{}.txt'
+HIST_FILENAME = 'histogram{}.txt'
 HIST_STEPS = 250
 HIST_DELTA = 0.01
 HIST_ROUND_SIGNS = 1
-baseline = num = crossing = show_num = last_change = hist_dict = last_sync = file_num = None
+baseline = num = crossing = show_num = last_change = None
+num_buf = hist_dict = last_sync = file_num = None
 
 def update_display():
     if show_num:
@@ -32,14 +34,15 @@ def update_display():
 def calculate_files():
     global file_num # pylint: disable=global-statement
     ll = os.listdir()
-    file_num = len(ll)
+    file_num = len(ll) / 2
 
 def reset():
-    global baseline, num, crossing, show_num, last_change, hist_dict, last_sync # pylint: disable=global-statement
+    global baseline, num, crossing, show_num, last_change, num_buf, hist_dict, last_sync # pylint: disable=global-statement
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
     show_num = False
+    num_buf = []
     hist_dict = [0] * HIST_STEPS
     last_change = last_sync = time.ticks_ms() # pylint: disable=no-member
     calculate_files()
@@ -53,9 +56,14 @@ def save_hist_value(d):
         index = HIST_STEPS - 1
     hist_dict[index] += 1
 
-def sync_hist():
+def sync_data():
     global last_sync # pylint: disable=global-statement
-    f = open(FILENAME.format(file_num), 'w')
+    num_buf.append((last_sync, num))
+    f = open(LOG_FILENAME.format(file_num), 'w')
+    for tm, n in num_buf:
+        f.write("{} {}\n".format(tm, n))
+    f.close()
+    f = open(HIST_FILENAME.format(file_num), 'w')
     for i in range(HIST_STEPS):
         f.write("{} {}\n".format(i * HIST_DELTA, hist_dict[i]))
     f.close()
@@ -79,7 +87,7 @@ while True:
         update_display()
 
     if t - last_sync >= SYNC_TIME:
-        sync_hist()
+        sync_data()
 
     if m.button_a.was_pressed():
         show_num = not show_num
