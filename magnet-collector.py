@@ -110,7 +110,7 @@ while True:
         crossing = False
         update_display()
 
-    if (buf_size == MEMORY_LIMIT or delta > SYNC_MAND_DELAY or time_to_sync and delta > SYNC_DELAY):
+    if buf_size == MEMORY_LIMIT or delta > SYNC_MAND_DELAY or time_to_sync and delta > SYNC_DELAY:
         sync_buf()
         update_display()
 
