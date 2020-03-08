@@ -34,7 +34,7 @@ def update_display():
 def calculate_files():
     global file_num # pylint: disable=global-statement
     ll = os.listdir()
-    file_num = len(ll) / 2
+    file_num = int(len(ll) / 2)
 
 def reset():
     global baseline, num, crossing, show_num, last_change, num_buf, hist_dict, last_sync # pylint: disable=global-statement
