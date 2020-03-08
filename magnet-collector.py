@@ -17,6 +17,7 @@ THRESHOLD = 13000
 TIME_LIMIT = 400
 INTERVAL_DELAY = 2500
 SYNC_DELAY = 3000 # sync on 3 sec delay
+SYNC_MAND_DELAY = 1800000 # 30 min delay - sync mandatory
 FILENAME = 'fulllog{}.txt'
 MEMORY_LIMIT = 200
 MEMORY_TO_SYNC = MEMORY_LIMIT / 2
@@ -93,11 +94,12 @@ reset()
 while True:
     field = m.compass.get_field_strength()
     t = time.ticks_ms() # pylint: disable=no-member
+    delta = t - last_change
 
     if not crossing and abs(field - baseline) > THRESHOLD:
         crossing = True
-        if t - last_change > TIME_LIMIT:
-            if t - last_change > INTERVAL_DELAY:
+        if delta > TIME_LIMIT:
+            if delta > INTERVAL_DELAY:
                 save_interval(int_start, last_change, num - int_num)
                 int_start = t
                 int_num = num
@@ -108,7 +110,7 @@ while True:
         crossing = False
         update_display()
 
-    if buf_size == MEMORY_LIMIT or (time_to_sync and t - last_change > SYNC_DELAY):
+    if (buf_size == MEMORY_LIMIT or delta > SYNC_MAND_DELAY or time_to_sync and delta > SYNC_DELAY):
         sync_buf()
         update_display()
 
