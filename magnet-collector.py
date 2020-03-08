@@ -10,47 +10,44 @@
 
 import time
 import os
-import microbit as m
+import microbit as m # pylint: disable=import-error
 
 # Choose the appropriate value based on the cage & wheel configuration
 THRESHOLD = 13000
 TIME_LIMIT = 400
+INTERVAL_DELAY = 2500
 SYNC_DELAY = 3000 # sync on 3 sec delay
-FILENAME = 'log{}.txt'
-MEMORY_LIMIT = 500
+FILENAME = 'fulllog{}.txt'
+MEMORY_LIMIT = 200
 MEMORY_TO_SYNC = MEMORY_LIMIT / 2
-HOUR = 3600000 # 1 hour
-HOURLY_INTERVAL = HOUR / 6 # 10 minutes
 baseline = num = crossing = show_num = file_num = last_change = None
-last_hour = saving = time_to_sync = time_buf = buf_size = None
+time_to_sync = time_buf = buf_size = int_start = int_num = None
 
 def update_display():
     if show_num:
         m.display.show(num, wait=False, loop=True)
     else:
-        light = 9 if saving else 1
-
         file_rows = int(file_num / 5)
         file_columns = file_num % 5
 
         for i in range(5):
             if i < file_rows:
                 for j in range(5):
-                    m.display.set_pixel(j, i, light)
+                    m.display.set_pixel(j, i, 9)
             elif i == file_rows:
                 for j in range(5):
                     if j <= file_columns:
-                        m.display.set_pixel(j, i, light)
+                        m.display.set_pixel(j, i, 9)
                     else:
                         m.display.set_pixel(j, i, 0)
             else:
                 for j in range(5):
                     m.display.set_pixel(j, i, 0)
 
-        m.display.set_pixel(4, 4, light if crossing else 0)
+        m.display.set_pixel(4, 4, 9 if crossing else 0)
 
 def calculate_files():
-    global file_num
+    global file_num # pylint: disable=global-statement
     ll = os.listdir()
     file_num = len(ll)
 
@@ -60,60 +57,52 @@ def remove_files():
         os.remove(f)
 
 def sync_buf():
-    global file_num, time_to_sync, time_buf, buf_size
+    global file_num, time_to_sync, time_buf, buf_size # pylint: disable=global-statement
     f = open(FILENAME.format(file_num), 'w')
     for i in range(buf_size):
-        f.write("{}\n".format(time_buf[i]))
+        i_st, i_end, i_num = time_buf[i]
+        f.write("{} {} {}\n".format(i_st, i_end, i_num))
     f.close()
     file_num += 1
     time_to_sync = False
     buf_size = 0
 
-def save_current_time():
-    global last_change, time_buf, buf_size
-    last_change = time.ticks_ms()
-    time_buf[buf_size] = last_change
+def save_interval(t_a, t_b, n):
+    global time_buf, buf_size, time_to_sync # pylint: disable=global-statement
+    time_buf[buf_size] = (t_a, t_b, n)
     buf_size += 1
+    time_to_sync = buf_size > MEMORY_TO_SYNC
 
 def reset():
-    global baseline, num, crossing, show_num, time_to_sync, time_buf
-    global buf_size, saving, last_hour
+    global baseline, num, crossing, show_num, time_to_sync, time_buf # pylint: disable=global-statement
+    global last_change, buf_size, int_num, int_start # pylint: disable=global-statement
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
-    num = 0
+    num = int_num = 0
     crossing = False
     show_num = False
-    saving = False
     calculate_files()
     time_to_sync = False
     buf_size = 0
     if time_buf is None:
         time_buf = [0] * MEMORY_LIMIT
-    save_current_time()
-    last_hour = last_change
+    last_change = int_start = time.ticks_ms() # pylint: disable=no-member
     m.display.clear()
     update_display()
 
 reset()
 while True:
     field = m.compass.get_field_strength()
-    t = time.ticks_ms()
-
-    if not saving and t > last_hour and t - last_hour < HOURLY_INTERVAL:
-        saving = True
-        update_display()
-    elif saving and t - last_hour >= HOURLY_INTERVAL:
-        saving = False
-        if buf_size > 0:
-            time_to_sync = True
-        last_hour += HOUR # plus 1 hour
-        update_display()
+    t = time.ticks_ms() # pylint: disable=no-member
 
     if not crossing and abs(field - baseline) > THRESHOLD:
         crossing = True
-        if saving and t - last_change > TIME_LIMIT:
+        if t - last_change > TIME_LIMIT:
+            if t - last_change > INTERVAL_DELAY:
+                save_interval(int_start, last_change, num - int_num)
+                int_start = t
+                int_num = num
             num = num + 1
-            save_current_time()
-            time_to_sync = buf_size > MEMORY_TO_SYNC
+            last_change = t
         update_display()
     elif crossing and abs(field - baseline) <= THRESHOLD:
         crossing = False
