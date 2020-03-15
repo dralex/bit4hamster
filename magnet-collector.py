@@ -112,7 +112,11 @@ def reset():
     calculate_files()
     time_to_sync = False
     num_buf = []
-    hist_dict = [0] * HIST_STEPS
+    if hist_dict:
+        for i in range(HIST_STEPS):
+            hist_dict[i] = 0
+    else:
+        hist_dict = [0] * HIST_STEPS
     buf_size = 0
     if time_buf is None:
         time_buf = [0] * MEMORY_LIMIT * 3
