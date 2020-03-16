@@ -28,14 +28,14 @@ HIST_DELTA = 0.01
 HIST_ROUND_SIGNS = 1
 baseline = num = crossing = show_num = file_num = last_change = None
 time_to_sync = time_buf = buf_size = last_sync = int_start = int_num = None
-num_buf = hist_dict = None
+fullfile_num = num_buf = hist_dict = None
 
 def update_display():
     if show_num:
         m.display.show('{}.'.format(num), wait=False, loop=True)
     else:
-        file_rows = int(file_num / 5)
-        file_columns = file_num % 5
+        file_rows = int(fullfile_num / 5)
+        file_columns = fullfile_num % 5
 
         for i in range(5):
             if i < file_rows:
@@ -54,9 +54,9 @@ def update_display():
         m.display.set_pixel(4, 4, 9 if crossing else 0)
 
 def calculate_files():
-    global file_num # pylint: disable=global-statement
+    global file_num, fullfile_num # pylint: disable=global-statement
     ll = os.listdir()
-    file_num = len(ll)
+    fullfile_num = file_num = len(ll)
 
 def remove_files():
     ll = os.listdir()
@@ -64,8 +64,8 @@ def remove_files():
         os.remove(f)
 
 def sync_buf():
-    global file_num, time_to_sync, time_buf, buf_size, last_sync # pylint: disable=global-statement
-    f = open(FULL_FILENAME.format(file_num), 'w')
+    global fullfile_num, time_to_sync, time_buf, buf_size, last_sync # pylint: disable=global-statement
+    f = open(FULL_FILENAME.format(fullfile_num), 'w')
     for i in range(buf_size):
         i_st, i_end, i_num = time_buf[i * 3: (i + 1) * 3]
         f.write("{} {} {}\n".format(i_st, i_end, i_num))
@@ -79,7 +79,7 @@ def sync_buf():
     for i in range(HIST_STEPS):
         f.write("{} {}\n".format(i * HIST_DELTA, hist_dict[i]))
     f.close()
-    file_num += 1
+    fullfile_num += 1
     time_to_sync = False
     last_sync = time.ticks_ms() # pylint: disable=no-member
     buf_size = 0
@@ -114,7 +114,7 @@ def reset():
     num_buf = []
     if hist_dict:
         for i in range(HIST_STEPS):
-            hist_dict[i] = 0
+            hist_dict[i] = 0 # pylint: disable=unsupported-assignment-operation
     else:
         hist_dict = [0] * HIST_STEPS
     buf_size = 0
