@@ -123,6 +123,7 @@ while True:
         update_display()
 
     if m.button_a.was_pressed():
+        baseline = m.compass.get_field_strength() # Update baseline
         show_num = not show_num
         if not show_num:
             m.display.clear()
