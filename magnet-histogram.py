@@ -36,6 +36,11 @@ def calculate_files():
     ll = os.listdir()
     file_num = int(len(ll) / 2)
 
+def remove_files():
+    ll = os.listdir()
+    for f in ll:
+        os.remove(f)
+
 def reset():
     global baseline, num, crossing, show_num, last_change, num_buf, hist_dict, last_sync # pylint: disable=global-statement
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
@@ -96,4 +101,5 @@ while True:
             m.display.clear()
         update_display()
     elif m.button_b.was_pressed():
+        remove_files()
         reset()
