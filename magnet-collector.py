@@ -13,6 +13,7 @@ import os
 import microbit as m # pylint: disable=import-error
 
 # Choose the appropriate value based on the cage & wheel configuration
+LIGHT = 3
 THRESHOLD = 12000
 TIME_LIMIT = 400
 INTERVAL_DELAY = 2500
@@ -34,18 +35,18 @@ def update_display():
         for i in range(5):
             if i < file_rows:
                 for j in range(5):
-                    m.display.set_pixel(j, i, 9)
+                    m.display.set_pixel(j, i, LIGHT)
             elif i == file_rows:
                 for j in range(5):
                     if j <= file_columns:
-                        m.display.set_pixel(j, i, 9)
+                        m.display.set_pixel(j, i, LIGHT)
                     else:
                         m.display.set_pixel(j, i, 0)
             else:
                 for j in range(5):
                     m.display.set_pixel(j, i, 0)
 
-        m.display.set_pixel(4, 4, 9 if crossing else 0)
+        m.display.set_pixel(4, 4, LIGHT if crossing else 0)
 
 def calculate_files():
     global file_num # pylint: disable=global-statement

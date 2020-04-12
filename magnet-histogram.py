@@ -13,6 +13,7 @@ import os
 import microbit as m # pylint: disable=import-error
 
 # Choose the appropriate value based on the cage & wheel configuration
+LIGHT = 3
 THRESHOLD = 12500
 TIME_LIMIT = 400
 SYNC_TIME = 1800000 # 30 min
@@ -28,8 +29,8 @@ def update_display():
     if show_num:
         m.display.show('{}.'.format(num), wait=False, loop=True)
     else:
-        m.display.set_pixel(0, 4, 9)
-        m.display.set_pixel(4, 4, 9 if crossing else 0)
+        m.display.set_pixel(0, 4, LIGHT)
+        m.display.set_pixel(4, 4, LIGHT if crossing else 0)
 
 def calculate_files():
     global file_num # pylint: disable=global-statement
