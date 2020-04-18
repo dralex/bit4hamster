@@ -63,7 +63,7 @@ def sync_buf():
     f = open(FILENAME.format(file_num), 'w')
     for i in range(buf_size):
         i_st, i_end, i_num = time_buf[i * 3: (i + 1) * 3]
-        f.write("{} {} {}\n".format(i_st, i_end, i_num))
+        f.write("{} {} {}\n".format(i_st, i_end - i_st, i_num))
     f.close()
     file_num += 1
     time_to_sync = False
