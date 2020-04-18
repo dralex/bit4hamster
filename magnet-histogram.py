@@ -32,6 +32,9 @@ def update_display():
         m.display.set_pixel(0, 4, LIGHT)
         m.display.set_pixel(4, 4, LIGHT if crossing else 0)
 
+def get_light():
+    return m.pin0.read_analog()
+
 def calculate_files():
     global file_num # pylint: disable=global-statement
     ll = os.listdir()
@@ -64,10 +67,10 @@ def save_hist_value(d):
 
 def sync_data():
     global last_sync # pylint: disable=global-statement
-    num_buf.append((last_sync, num))
+    num_buf.append((last_sync, num, m.temperature(), get_light()))
     f = open(LOG_FILENAME.format(file_num), 'w')
-    for tm, n in num_buf:
-        f.write("{} {}\n".format(tm, n))
+    for n in num_buf:
+        f.write("{}\n".format(' '.join(map(str, n))))
     f.close()
     f = open(HIST_FILENAME.format(file_num), 'w')
     for i in range(HIST_STEPS):

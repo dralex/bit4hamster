@@ -11,4 +11,5 @@ This package includes the hamster-lab programs:
 * magnet-collector.py - Magnet counter with statistics collection
 * magnet-histogram.py - Frequency histogram builder based on a magnet counter 
 * testmem.py - Micro:bit memory limit testing program
+# testlight.py - Micro:bit temp & light sensor testing program
 * radio-sender.py & radio-receiver.py - Micro:bit radio testing program
