@@ -35,6 +35,8 @@ def update_display():
 
 def get_temperature():
     global temp_sum, temp_count  # pylint: disable=global-statement
+    if temp_count == 0:
+        update_temperature()
     temp_val = float(temp_sum) / temp_count
     temp_sum = temp_count = 0
     return temp_val
@@ -46,6 +48,8 @@ def update_temperature():
 
 def get_light():
     global light_sum, light_count # pylint: disable=global-statement
+    if light_count == 0:
+        update_light()
     light_val = float(light_sum) / light_count
     light_sum = light_count = 0
     return light_val
