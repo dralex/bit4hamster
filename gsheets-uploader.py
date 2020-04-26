@@ -49,7 +49,7 @@ def usage():
     print('Hamster google sheets data uploader')
     print('Usage: {} <command>'.format(sys.argv[0]))
     print('Commands:')
-    print('\tupload <date>\tUpload the hamster data to sheets '
+    print('\tupload <date> [start_time]\tUpload the hamster data to sheets '
           'creating new worksheet for the <date>')
     exit(1)
 
@@ -67,16 +67,16 @@ def read_csv_file(filename):
 
 def insert_array(sh, r, array):
     cells = sh.range(r)
-    for idx, cell in enumerate(cells):
-        cell.value = array[idx]
+    for idx, value in enumerate(array):
+        cells[idx].value = value
     sh.update_cells(cells, value_input_option='USER_ENTERED')
 
 def insert_matrix(sh, r, array):
     columns = len(array[0])
     cells = sh.range(r)
-    for rowidx, in enumerate(cells):
-        for colidx, a in enumerate(array[i]):
-            cells[rowidx * columns + colidx].value = a
+    for rowidx, a in enumerate(array):
+        for colidx, value in enumerate(a):
+            cells[rowidx * columns + colidx].value = value
     sh.update_cells(cells, value_input_option='USER_ENTERED')
 
 if __name__ == '__main__':
