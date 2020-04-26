@@ -13,3 +13,4 @@ This package includes the hamster-lab programs:
 * testmem.py - Micro:bit memory limit testing program
 * testlight.py - Micro:bit temp & light sensor testing program
 * radio-sender.py & radio-receiver.py - Micro:bit radio testing program
+* gsheets-uploader.py - Upload measured data into a Google Spreadsheet
