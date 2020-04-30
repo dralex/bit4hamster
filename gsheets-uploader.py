@@ -23,6 +23,7 @@ HISTOGRAM_FILE = 'histogram0.txt'
 FULLLOG_FILE = 'fulllog.txt'
 SEPARATOR = ' '
 DEFAULT_START_TIME = '20:00'
+TOTAL_SHEET_NAME = 'Total'
 
 def create_sheet(name):
     scope = ['https://www.googleapis.com/auth/spreadsheets',
@@ -108,11 +109,12 @@ if __name__ == '__main__':
             if not logdata and not histdata and not fulldata:
                 error('No data to upload in the dir {}'.format(datedir))
 
-            sheet = create_sheet('hamster {}'.format(date)).sheet1
+            table = create_sheet('hamster {}'.format(date))
+            sheet = table.sheet1
             sheet.update_title(date)
             sheet.update('A1', start_time, raw=False)
             if logdata:
-                insert_array(sheet, 'B1:F1', [0, 0, '=D2', '=E2', 0])
+                insert_array(sheet, 'B1:F1', (0, 0, '=D2', '=E2', 0))
                 rows = len(logdata)
                 data = []
                 for i in range(rows):
@@ -125,6 +127,22 @@ if __name__ == '__main__':
                 if len(logdata[0]) != 4:
                     error('Bad log file data')
                 insert_matrix(sheet, 'B2:E{}'.format(rows + 1), logdata)
+
+                sheet2 = table.add_worksheet(TOTAL_SHEET_NAME, 100, 10, index=None)
+                insert_array(sheet2, 'A1:G1', (date, 'A',
+                                               "=max('{}'!C1:'{}'!C22)".format(date, date),
+                                               '=round(C1*0.23*PI(),0)',
+                                               "=average('{}'!D2:'{}'!D22)".format(date, date),
+                                               "=average('{}'!E2:'{}'!E22)".format(date, date),
+                                               '=D1'))
+                data = []
+                for i in range(rows):
+                    data.append((date,
+                                 "='{}'!A{}".format(date, i + 1),
+                                 "='{}'!D{}".format(date, i + 1),
+                                 "='{}'!E{}".format(date, i + 1),
+                                 "='{}'!F{}".format(date, i + 1)))
+                insert_matrix(sheet2, 'A3:E{}'.format(rows + 3), data)
             if histdata:
                 rows = len(histdata)
                 if len(histdata[0]) != 2:
