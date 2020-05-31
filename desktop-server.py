@@ -14,7 +14,7 @@ import os
 import time
 import serial
 
-SERIAL_ADDRESS = '/dev/ttyACM0'
+DEFAULT_SERIAL_ADDRESS = '/dev/ttyACM0'
 SERIAL_BAUD = 115200
 
 SYSTEM_START = 'STA'
@@ -31,9 +31,9 @@ MODE_LISTEN = 1
 
 DATA_BYTES_ORDER = 'little'
 
-def init_serial():
+def init_serial(addr):
     s = serial.Serial()
-    s.port = SERIAL_ADDRESS
+    s.port = addr
     s.baudrate = SERIAL_BAUD
     s.bytesize = serial.EIGHTBITS	# number of bits per bytes
     s.parity = serial.PARITY_NONE	# set parity check: no parity
@@ -58,10 +58,12 @@ def reset_serial(ser):
 
 def usage():
     print('Hamster desktop server')
-    print('Usage: {} <command>'.format(sys.argv[0]))
+    print('Usage: {} <command> [flags]'.format(sys.argv[0]))
     print('Commands:')
     print('\tinit\tInitialize counter with system time')
     print('\tlisten\tWait for counter data & files')
+    print('Flags:')
+    print('\t-d <device>\tUse the specified tty device (default /dev/ttyACM0)')
     exit(1)
 
 def rename_file(fpath):
@@ -69,12 +71,13 @@ def rename_file(fpath):
         checkpath = '{}-{}.txt'.format(fpath, letter)
         if os.path.exists(checkpath):
             postfix = 0
-            while not postfix or os.path.exists(newname):
+            newname = checkpath
+            while os.path.exists(newname):
                 newname = "{}-{}-{:02d}.txt".format(fpath, letter, postfix)
                 postfix += 1
             os.rename(checkpath, newname)
 
-if len(sys.argv) != 2:
+if len(sys.argv) < 2:
     usage()
 
 mode = None
@@ -97,7 +100,21 @@ elif command == 'listen':
 else:
     usage()
 
-sport = init_serial()
+serial_address = '/dev/ttyACM0'
+
+if len(sys.argv) > 2:
+    flagargs = sys.argv[2:]
+    print('flag args:', flagargs)
+    if len(flagargs) % 2 != 0:
+        usage()
+    flags = int(len(flagargs) / 2)
+    for i in range(flags):
+        theflag = flagargs[i * 2]
+        thearg = flagargs[i * 2 + 1]
+        if theflag == '-d':
+            serial_address = thearg
+
+sport = init_serial(serial_address)
 print('sending start')
 sport.write(bytes('{}\r\n'.format(SYSTEM_START), 'utf-8'))
 time.sleep(1)
