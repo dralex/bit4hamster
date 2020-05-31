@@ -31,6 +31,9 @@ MODE_LISTEN = 1
 
 DATA_BYTES_ORDER = 'little'
 
+LOG_FILENAME = 'log'
+EVLOG_FILENAME = 'evlog'
+
 def init_serial(addr):
     s = serial.Serial()
     s.port = addr
@@ -90,8 +93,8 @@ elif command == 'listen':
     month = tt[1]
     day = tt[2]
     dirname = 'data/{:02d}.{:02d}'.format(day, month)
-    logfilename = '{}/log'.format(dirname)
-    evlogfilename = '{}/evlog'.format(dirname)
+    logfilename = '{}/{}'.format(LOG_FILENAME, dirname)
+    evlogfilename = '{}/{}'.format(EVLOG_FILENAME, dirname)
     if not os.path.exists(dirname):
         os.mkdir(dirname)
     else:
@@ -100,7 +103,7 @@ elif command == 'listen':
 else:
     usage()
 
-serial_address = '/dev/ttyACM0'
+serial_address = DEFAULT_SERIAL_ADDRESS
 
 if len(sys.argv) > 2:
     flagargs = sys.argv[2:]
