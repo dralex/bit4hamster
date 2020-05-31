@@ -107,7 +107,6 @@ serial_address = DEFAULT_SERIAL_ADDRESS
 
 if len(sys.argv) > 2:
     flagargs = sys.argv[2:]
-    print('flag args:', flagargs)
     if len(flagargs) % 2 != 0:
         usage()
     flags = int(len(flagargs) / 2)
