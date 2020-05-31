@@ -93,8 +93,8 @@ elif command == 'listen':
     month = tt[1]
     day = tt[2]
     dirname = 'data/{:02d}.{:02d}'.format(day, month)
-    logfilename = '{}/{}'.format(LOG_FILENAME, dirname)
-    evlogfilename = '{}/{}'.format(EVLOG_FILENAME, dirname)
+    logfilename = '{}/{}'.format(dirname, LOG_FILENAME)
+    evlogfilename = '{}/{}'.format(dirname, EVLOG_FILENAME)
     if not os.path.exists(dirname):
         os.mkdir(dirname)
     else:
