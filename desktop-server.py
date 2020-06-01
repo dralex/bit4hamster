@@ -173,13 +173,14 @@ while True:
                         remote_cs = int.from_bytes(data[18:20], DATA_BYTES_ORDER)
                         if checksum != remote_cs:
                             print('bad log checksum')
+                        local_ts = time.time()
                         print('received {}: {} {} {} {}'.format(code, ts, num, temp, light))
                         if code == SYSTEM_LOG:
                             name = logfilename
                         else:
                             name = evlogfilename
                         logf = open('{}-{}.txt'.format(name, device), 'a')
-                        logf.write('{} {} {} {}\n'.format(ts, num, temp, light))
+                        logf.write('{} {} {} {} {}\n'.format(local_ts, ts, num, temp, light))
                         logf.close()
                     elif code == SYSTEM_FILE:
                         if f:
