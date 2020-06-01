@@ -16,6 +16,7 @@ import radio # pylint: disable=import-error
 DEVICE = 'A'
 THRESHOLD = 12500 		# Choose the appropriate value based on the cage & wheel configuration
 SENSOR_LOG = True
+SEND_DELAY = 0			# 0 ms
 
 TIME_LIMIT = 400		# 0.4 sec
 SYNC_TIME = 1800000 		# 30 min
@@ -152,6 +153,8 @@ while True:
         delta = t - last_change
         if delta > TIME_LIMIT:
             num = num + 1
+            if SEND_DELAY:
+                m.sleep(SEND_DELAY)
             send_single_event(RADIO_CODE_EVENT, t, num,
                               get_temperature(), get_light())
             last_change = t
