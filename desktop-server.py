@@ -179,8 +179,13 @@ while True:
                             name = logfilename
                         else:
                             name = evlogfilename
-                        logf = open('{}-{}.txt'.format(name, device), 'a')
-                        logf.write('{} {} {} {} {}\n'.format(local_ts, ts, num, temp, light))
+                        logf = open('{}.txt'.format(name), 'a')
+                        logf.write('{} {} {} {} {} {}\n'.format(local_ts,
+                                                                device,
+                                                                ts,
+                                                                num,
+                                                                temp,
+                                                                light))
                         logf.close()
                     elif code == SYSTEM_FILE:
                         if f:
