@@ -13,28 +13,34 @@ import os
 import microbit as m # pylint: disable=import-error
 import radio # pylint: disable=import-error
 
-# Choose the appropriate value based on the cage & wheel configuration
-THRESHOLD = 12500
-LIGHT = 3
-TIME_LIMIT = 400
-SYNC_TIME = 1800000 # 30 min
-SENSOR_SYNC_TIME = 10000 # 1 sec
+DEVICE = 'A'
+THRESHOLD = 12500 		# Choose the appropriate value based on the cage & wheel configuration
+SENSOR_LOG = True
+
+TIME_LIMIT = 400		# 0.4 sec
+SYNC_TIME = 1800000 		# 30 min
+SENSOR_SYNC_TIME = 300000 	# 5 min
+SENSOR_MEASURE_TIME = 10000 	# 10 sec
+
 LOG_FILENAME_PREFIX = 'log'
 LOG_FILENAME = LOG_FILENAME_PREFIX + '{}.txt'
+
 RADIO_CODE_LOG = 'LOG'
 RADIO_CODE_EVENT = 'EVN'
 RADIO_CODE_FILE = 'FIL'
 RADIO_CODE_LINE = 'LIN'
 RADIO_CODE_EOF = 'EOF'
 DATA_BYTES_ORDER = 'little'
-DEVICE = 'A'
 SEND_TIMEOUT = 10
 RADIO_BUFFER = 32
 RADIO_QUEUE = 2
 RADIO_CHANNEL = 1
+
+LIGHT = 3
+
 baseline = num = crossing = show_num = last_change = None
 num_buf = last_sync = file_num = None
-temp_sum = temp_count = temp_sync = light_sum = light_count = light_sync = None
+temp_sum = temp_count = light_sum = light_count = sensor_measure = sensor_sync = None
 
 def update_display():
     if show_num:
@@ -51,10 +57,10 @@ def get_temperature():
     return temp_val
 
 def update_temperature():
-    global temp_sum, temp_count, temp_sync  # pylint: disable=global-statement
+    global temp_sum, temp_count, sensor_measure  # pylint: disable=global-statement
     temp_sum += m.temperature()
     temp_count += 1
-    temp_sync = time.ticks_ms() # pylint: disable=no-member
+    sensor_measure = time.ticks_ms() # pylint: disable=no-member
 
 def get_light():
     global light_sum, light_count # pylint: disable=global-statement
@@ -64,10 +70,11 @@ def get_light():
     return light_val
 
 def update_light():
-    global light_sum, light_count, light_sync # pylint: disable=global-statement
-    light_sum += m.pin0.read_analog()
+    global light_sum, light_count, sensor_measure # pylint: disable=global-statement
+    if SENSOR_LOG:
+        light_sum += m.pin0.read_analog()
     light_count += 1
-    light_sync = time.ticks_ms() # pylint: disable=no-member
+    sensor_measure = time.ticks_ms() # pylint: disable=no-member
 
 def calculate_files():
     global file_num # pylint: disable=global-statement
@@ -81,14 +88,14 @@ def remove_files():
 
 def reset():
     global baseline, num, crossing, show_num, last_change, num_buf, last_sync # pylint: disable=global-statement
-    global temp_sum, temp_count, temp_sync, light_sum, light_count, light_sync # pylint: disable=global-statement
+    global temp_sum, temp_count, sensor_measure, light_sum, light_count, sensor_sync # pylint: disable=global-statement
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
     show_num = False
     temp_sum = temp_count = light_sum = light_count = 0
     num_buf = []
-    last_change = last_sync = temp_sync = light_sync = time.ticks_ms() # pylint: disable=no-member
+    last_change = last_sync = sensor_sync = sensor_measure = time.ticks_ms() # pylint: disable=no-member
     calculate_files()
     m.display.clear()
     update_display()
@@ -107,6 +114,11 @@ def send_single_event(typ, lsync, n, tmp, l):
                  checksum.to_bytes(2, DATA_BYTES_ORDER)) # pylint: disable=no-member
     radio.send(radio_buf)
 
+def send_log(lsync, n, tmp, l):
+    global sensor_sync # pylint: disable=global-statement
+    send_single_event(RADIO_CODE_LOG, lsync, n, tmp, l)
+    sensor_sync = time.ticks_ms() # pylint: disable=no-member
+
 def send_full_log():
     radio.send('{}{}{}'.format(RADIO_CODE_FILE, DEVICE, LOG_FILENAME_PREFIX))
     for n in num_buf:
@@ -118,7 +130,7 @@ def send_full_log():
 def sync_data():
     global last_sync # pylint: disable=global-statement
     a = (last_sync, num, get_temperature(), get_light())
-    send_single_event(RADIO_CODE_LOG, *a)
+    send_log(*a)
     num_buf.append(a)
     f = open(LOG_FILENAME.format(file_num), 'w')
     for n in num_buf:
@@ -150,9 +162,12 @@ while True:
 
     if t - last_sync >= SYNC_TIME:
         sync_data()
-    if t - temp_sync >= SENSOR_SYNC_TIME:
+
+    if SENSOR_LOG and t - sensor_sync >= SENSOR_MEASURE_TIME:
+        send_log(t, num, get_temperature(), get_light())
+
+    if t - sensor_measure >= SENSOR_MEASURE_TIME:
         update_temperature()
-    if t - light_sync >= SENSOR_SYNC_TIME:
         update_light()
 
     if m.button_a.was_pressed():
