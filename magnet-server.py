@@ -112,12 +112,10 @@ while True:
         code = str(msg[0:3], 'utf-8')
         device = str(msg[3:4], 'utf-8')
         msg = msg[4:]
-        if code == RADIO_CODE_LOG:
+        if code == RADIO_CODE_LOG or code == RADIO_CODE_EVENT:
             hexdump = ''.join('%02x' % i for i in msg)
-            m.uart.write('{}{}{}\r\n'.format(SYSTEM_LOG, device, hexdump))
-        elif code == RADIO_CODE_EVENT:
-            hexdump = ''.join('%02x' % i for i in msg)
-            m.uart.write('{}{}{}\r\n'.format(SYSTEM_EVENT, device, hexdump))
+            serial_code = SYSTEM_EVENT if code == RADIO_CODE_EVENT else SYSTEM_LOG
+            m.uart.write('{}{}{}\r\n'.format(serial_code, device, hexdump))
         elif code == RADIO_CODE_FILE:
             if sending_file:
                 m.uart.write('{}{}\r\n'.format(SYSTEM_EOF, device))

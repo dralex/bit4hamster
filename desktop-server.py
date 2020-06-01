@@ -152,7 +152,7 @@ while True:
                     device = line[3:4]
                     rawdata = line[4:]
                     print('received {} "{}" from {}...'.format(code, rawdata, device))
-                    if code == SYSTEM_LOG:
+                    if code == SYSTEM_LOG or code == SYSTEM_EVENT:
                         try:
                             data = bytes.fromhex(rawdata)
                         except ValueError:
@@ -173,31 +173,14 @@ while True:
                         remote_cs = int.from_bytes(data[18:20], DATA_BYTES_ORDER)
                         if checksum != remote_cs:
                             print('bad log checksum')
+                        print('received {}: {} {} {} {}'.format(code, ts, num, temp, light))
+                        if code == SYSTEM_LOG:
+                            name = logfilename
                         else:
-                            print('received log: {} {} {} {}'.format(ts, num, temp, light))
-                            logf = open('{}-{}.txt'.format(logfilename, device), 'a')
-                            logf.write('{} {} {} {}\n'.format(ts, num, temp, light))
-                            logf.close()
-                    elif code == SYSTEM_EVENT:
-                        try:
-                            data = bytes.fromhex(rawdata)
-                        except ValueError:
-                            print('bad hex data')
-                            continue
-                        if len(data) != 8:
-                            print('bad data size')
-                            continue
-                        ts = int.from_bytes(data[0:4], DATA_BYTES_ORDER)
-                        num = int.from_bytes(data[4:6], DATA_BYTES_ORDER)
-                        checksum = sum(data[0:6])
-                        remote_cs = int.from_bytes(data[6:8], DATA_BYTES_ORDER)
-                        if checksum != remote_cs:
-                            print('bad log checksum')
-                        else:
-                            print('received event: {} {}'.format(ts, num))
-                            logf = open('{}-{}.txt'.format(evlogfilename, device), 'a')
-                            logf.write('{} {}\n'.format(ts, num))
-                            logf.close()
+                            name = evlogfilename
+                        logf = open('{}-{}.txt'.format(name, device), 'a')
+                        logf.write('{} {} {} {}\n'.format(ts, num, temp, light))
+                        logf.close()
                     elif code == SYSTEM_FILE:
                         if f:
                             print('file was already opened')
