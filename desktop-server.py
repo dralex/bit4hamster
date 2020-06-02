@@ -9,9 +9,9 @@
 # -----------------------------------------------------------------------------
 
 import sys
-import datetime
 import os
 import time
+import datetime
 import serial
 
 DEFAULT_SERIAL_ADDRESS = '/dev/ttyACM0'
@@ -174,7 +174,9 @@ while True:
                         if checksum != remote_cs:
                             print('bad log checksum')
                         local_ts = time.time()
-                        print('received {}: {} {} {} {}'.format(code, ts, num, temp, light))
+                        dt = datetime.datetime.now()
+                        print('{} received {}: {} {} {} {}'.format(dt.strftime('%H:%M:%S.%f'),
+                                                                   code, ts, num, temp, light))
                         if code == SYSTEM_LOG:
                             name = logfilename
                         else:
