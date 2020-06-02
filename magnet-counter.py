@@ -166,7 +166,7 @@ while True:
     if t - last_sync >= SYNC_TIME:
         sync_data()
 
-    if SENSOR_LOG and t - sensor_sync >= SENSOR_MEASURE_TIME:
+    if SENSOR_LOG and t - sensor_sync >= SENSOR_SYNC_TIME:
         send_log(t, num, get_temperature(), get_light())
 
     if t - sensor_measure >= SENSOR_MEASURE_TIME:
