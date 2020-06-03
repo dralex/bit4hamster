@@ -14,9 +14,17 @@ import microbit as m # pylint: disable=import-error
 import radio # pylint: disable=import-error
 
 DEVICE = 'A'
-THRESHOLD = 12500 		# Choose the appropriate value based on the cage & wheel configuration
-SENSOR_LOG = True
-SEND_DELAY = 0			# 0 ms
+if DEVICE == 'A':
+    # Choose the appropriate value based on the cage & wheel configuration
+    THRESHOLD = 12500
+    SENSOR_LOG = True
+    EVENT_LOG = False
+    SEND_DELAY = 0     		# 0 ms
+else:
+    THRESHOLD = 12000
+    SENSOR_LOG = False
+    EVENT_LOG = True
+    SEND_DELAY = 0     		# 0 ms
 
 TIME_LIMIT = 400		# 0.4 sec
 SYNC_TIME = 1800000 		# 30 min
@@ -153,10 +161,11 @@ while True:
         delta = t - last_change
         if delta > TIME_LIMIT:
             num = num + 1
-            if SEND_DELAY:
-                m.sleep(SEND_DELAY)
-            send_single_event(RADIO_CODE_EVENT, t, num,
-                              get_temperature(), get_light())
+            if EVENT_LOG:
+                if SEND_DELAY:
+                    m.sleep(SEND_DELAY)
+                send_single_event(RADIO_CODE_EVENT, t, num,
+                                  get_temperature(), get_light())
             last_change = t
         update_display()
     elif crossing and abs(field - baseline) <= THRESHOLD:
@@ -166,12 +175,12 @@ while True:
     if t - last_sync >= SYNC_TIME:
         sync_data()
 
-    if SENSOR_LOG and t - sensor_sync >= SENSOR_SYNC_TIME:
-        send_log(t, num, get_temperature(), get_light())
-
-    if t - sensor_measure >= SENSOR_MEASURE_TIME:
-        update_temperature()
-        update_light()
+    if SENSOR_LOG:
+        if t - sensor_sync >= SENSOR_SYNC_TIME:
+            send_log(t, num, get_temperature(), get_light())
+        if t - sensor_measure >= SENSOR_MEASURE_TIME:
+            update_temperature()
+            update_light()
 
     if m.button_a.was_pressed():
         baseline = m.compass.get_field_strength() # Update baseline
