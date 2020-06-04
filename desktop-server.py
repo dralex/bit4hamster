@@ -68,6 +68,9 @@ if __name__ == '__main__':
         dprint('waiting data...')
         protocol.listen()
 
+    except KeyboardInterrupt:
+        if mode == LISTEN:
+            protocol.save_state()
     except SerialException as e:
         dprint('serial error: {}'.format(e))
         sport.close()

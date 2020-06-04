@@ -51,7 +51,7 @@ class SerialProtocol(object):
         time.sleep(1)
         line = None
         start_t = t = time.time()
-        while timeout is None or (t - start_t >= timeout):
+        while timeout is None or (t - start_t < timeout):
             line = self.sport.readline()
             if line:
                 if line.strip() == self.SYSTEM_OK:
@@ -83,7 +83,7 @@ class SerialProtocol(object):
             if line:
                 code = line[0:3]
                 device = line[3:4]
-                rawdata = line[4:]
+                rawdata = line[4:].strip()
                 dprint('received {} "{}" from {}...'.format(code, rawdata, device))
                 if code == self.SYSTEM_LOG or code == self.SYSTEM_EVENT:
                     try:

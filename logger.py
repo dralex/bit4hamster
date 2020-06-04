@@ -22,7 +22,7 @@ class EventLogger(object):
     DAY_EVENT_LOG_NAME = 'events'
     DAY_SUMMARY_LOG_NAME = 'summary'
 
-    def __init__(self, datadir=EventLogger.DATA_DIR):
+    def __init__(self, datadir=DATA_DIR):
         self.__datadir = datadir
         self.__save_logname = None
         self.__date = None
@@ -37,17 +37,20 @@ class EventLogger(object):
             sh = hamstersheet.HamsterSheet(self.__date,
                                            self.__event_log,
                                            self.__summary_log)
-           url = sh.get_url()
+            url = sh.get_url()
             self.__sheets.append(url)
             dprint('uploaded sheet {}'.format(url))
         except hamstersheet.SheetException as e:
             dprint('error while uploading sheet: {}'.format(e))
 
-    def newday(self):
+    def save(self):
         if self.__event_log != None:
-            self.__sync_log_to_gsheets()
-        self.__event_log = []
-        self.__summary_log = []
+            self.__sync_log_to_gsheets()        
+    
+    def newday(self):
+        self.save()
+        self.__event_log = {}
+        self.__summary_log = {}
         tt = datetime.datetime.now().timetuple()
         month = tt[1]
         day = tt[2]
@@ -65,7 +68,7 @@ class EventLogger(object):
 
     def event(self, device, ts, num, temp, light):
         local_ts = time.time()
-        self.__save_to_log(self.DAY_EVENT_LOG_NAME,
+        self.__save_to_log(self.__day_event_log,
                            local_ts, device, ts, num, temp, light)
         if device not in self.__event_log:
             self.__event_log[device] = []
@@ -77,11 +80,11 @@ class EventLogger(object):
 
     def summary(self, device, ts, num, temp, light):
         local_ts = time.time()
-        self.__save_to_log(self.DAY_SUMMARY_LOG_NAME,
+        self.__save_to_log(self.__day_summary_log,
                            local_ts, device, ts, num, temp, light)
         if device not in self.__summary_log:
             self.__summary_log[device] = []
-        self.__summary_log[device].append(local_ts, ts, num, temp, light)
+        self.__summary_log[device].append((local_ts, ts, num, temp, light))
 
     def __correct_summary_log(self, device, ts, num, temp, light):
         if device not in self.__summary_log:

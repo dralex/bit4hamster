@@ -21,7 +21,7 @@ class SerialPort(object):
 
     SERIAL_BAUD = 115200
 
-    def __init__(self, dev, baud=SerialPort.SERIAL_BAUD):
+    def __init__(self, dev, baud=SERIAL_BAUD):
         self.device = dev
         self.baud = baud
         self.s = None
@@ -43,7 +43,7 @@ class SerialPort(object):
         self.reset()
 
     def reset(self):
-        assert self.s is None
+        assert self.s is not None
         if self.s.isOpen():
             self.s.close()
         try:
@@ -54,8 +54,8 @@ class SerialPort(object):
             raise SerialException('error while openinig serial port: ' + str(e))
 
     def send(self, msg):
-        assert self.s is None
-        if self.s.isOpen():
+        assert self.s is not None
+        if not self.s.isOpen():
             self.reset()
         try:
             self.s.write(bytes('{}\r\n'.format(msg), 'utf-8'))
@@ -63,8 +63,8 @@ class SerialPort(object):
             raise SerialException('error while writing serial port: ' + str(e))
 
     def readline(self):
-        assert self.s is None
-        if self.s.isOpen():
+        assert self.s is not None
+        if not self.s.isOpen():
             self.reset()
         try:
             return str(self.s.readline(), 'utf-8')
@@ -72,6 +72,6 @@ class SerialPort(object):
             raise SerialException('error while reading serial port: ' + str(e))
 
     def close(self):
-        assert self.s is None
+        assert self.s is not None
         self.s.close()
         self.s = None
