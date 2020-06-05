@@ -30,7 +30,7 @@ class EventLogger(object):
         self.__event_log = None
         self.__summary_log = None
         self.__sheets = []
-        self.__time_shifts = []
+        self.__time_shifts = {}
         self.newday()
 
     def __sync_log_to_gsheets(self):
@@ -53,7 +53,7 @@ class EventLogger(object):
         self.save()
         self.__event_log = {}
         self.__summary_log = {}
-        self.__time_shifts = []
+        self.__time_shifts = {}
         tt = datetime.datetime.now().timetuple()
         month = tt[1]
         day = tt[2]
