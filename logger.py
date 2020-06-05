@@ -100,7 +100,7 @@ class EventLogger(object):
     def __correct_summary_log(self, device, ts, num, temp, light):
         if device in self.__time_shifts:
             local, remote = self.__time_shifts[device]
-            local_ts = local - remote + ts / 1000.0
+            local_ts = local + (ts - remote) / 1000.0
         else:
             local_ts = 0
         if device not in self.__summary_log:
