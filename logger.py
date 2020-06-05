@@ -95,17 +95,18 @@ class EventLogger(object):
             evlog.append(local_ts)
 
     def summary(self, device, ts, num, temp, light):
-        if device in self.__time_shifts:
+        has_shift = device in self.__time_shifts
+        local_ts = time.time()
+        self.__save_time_shift(local_ts, device, ts)
+        if has_shift:
             local, remote, correction = self.__time_shifts[device]
             if correction is None:
                 correction = 0.0
             local_ts = local + (ts - remote) / 1000.0
             dprint('local time shift w/o correction: {}'.format(time.time() - local_ts))
-            local_ts -= correction * (time.time() - local)
+            local_ts += correction * (time.time() - local)
             dprint('local time shift with correction: {}'.format(time.time() - local_ts))
-        else:
-            local_ts = time.time()
-            self.__save_time_shift(local_ts, device, ts)
+
         self.__save_to_log(self.__day_summary_log,
                            local_ts, device, ts, num, temp, light)
         if device not in self.__summary_log:
