@@ -85,7 +85,7 @@ class EventLogger(object):
 
     def summary(self, device, ts, num, temp, light):
         if device in self.__time_shifts:
-            local, remote = self.__time_shifts
+            local, remote = self.__time_shifts[device]
             local_ts = local + (ts - remote) / 1000.0
             dprint('local time shift: {}'.format(time.time() - local_ts))
         else:
