@@ -104,10 +104,9 @@ class HamsterSheet(object):
             for cell in log:
                 ts_array.append(cell[1])
             if 'A' in time_shifts:
-                time_shift = time_shifts['A']
-                correction = 0.0 if time_shift[2] is None else time_shift[2]
-                time_diff = (time_shift[0] - time_shift[1] / 1000.0 -
-                             correction * (time.time() - time_shift[0]))
+                local, remote = time_shifts['A']
+                time_diff = local - remote / 1000.0
+                delta = time.time() - local
             else:
                 time_diff = None
             matrix = []
@@ -115,7 +114,8 @@ class HamsterSheet(object):
                 for cell in log:
                     if cell[1] == ts:
                         if time_diff:
-                            local_ts = time_diff + ts / 1000.0
+                            correction = 1.0 - (ts - remote) / (1000.0 * delta)
+                            local_ts = time_diff + ts / 1000.0 + correction * delta
                         else:
                             local_ts = ts
                         tt = datetime.datetime.fromtimestamp(local_ts).timetuple()
