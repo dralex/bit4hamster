@@ -47,8 +47,8 @@ class EventLogger(object):
 
     def save(self):
         if self.__event_log != None:
-            self.__sync_log_to_gsheets()        
-    
+            self.__sync_log_to_gsheets()
+
     def newday(self):
         self.save()
         self.__event_log = {}
@@ -87,7 +87,7 @@ class EventLogger(object):
         if device in self.__time_shifts:
             local, remote = self.__time_shifts
             local_ts = local + (ts - remote) / 1000.0
-            dprint('local time shift: {}', time.time() - local_ts)
+            dprint('local time shift: {}'.format(time.time() - local_ts))
         else:
             local_ts = time.time()
         self.__save_to_log(self.__day_summary_log,
@@ -97,9 +97,9 @@ class EventLogger(object):
         self.__summary_log[device].append((local_ts, ts, num, temp, light))
 
     def __correct_summary_log(self, device, ts, num, temp, light):
-        if device in self.__time_shitfs:
-            local, remote = self.__time_shitfs[device]
-            local_ts = local_time - remote + ts / 1000.0
+        if device in self.__time_shifts:
+            local, remote = self.__time_shifts[device]
+            local_ts = local - remote + ts / 1000.0
         else:
             local_ts = 0
         if device not in self.__summary_log:

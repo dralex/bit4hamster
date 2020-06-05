@@ -103,7 +103,7 @@ class HamsterSheet(object):
             for cell in summary_log:
                 ts_array.append(cell[1])
             if 'A' in time_shifts:
-                time_shift = time_shifts['A'] 
+                time_shift = time_shifts['A']
                 time_diff = time_shift[0] - time_shift[1] / 1000.0
             else:
                 time_diff = None
