@@ -100,7 +100,7 @@ class HamsterSheet(object):
             if not log:
                 return
             ts_array = []
-            for cell in summary_log:
+            for cell in log:
                 ts_array.append(cell[1])
             if 'A' in time_shifts:
                 time_shift = time_shifts['A']
@@ -109,7 +109,7 @@ class HamsterSheet(object):
                 time_diff = None
             matrix = []
             for i, ts in enumerate(sorted(ts_array)):
-                for cell in summary_log:
+                for cell in log:
                     if cell[1] == ts:
                         if time_diff:
                             local_ts = time_diff + ts / 1000.0
