@@ -109,6 +109,7 @@ def reset():
     calculate_files()
     m.display.clear()
     update_display()
+    send_log(last_change, num, get_temperature(), get_light())
 
 def send_single_event(typ, lsync, n, tmp, l):
     radio_buf = (lsync.to_bytes(4, DATA_BYTES_ORDER) + # pylint: disable=no-member
