@@ -69,16 +69,18 @@ class EventLogger(object):
         self.__day_summary_log = self.PATH_TEMPLATE.format(self.__daydir,
                                                            self.DAY_SUMMARY_LOG_NAME)
 
+    def __save_time_shift(self, local_ts, device, ts):
+        if device not in self.__time_shifts:
+            self.__time_shifts[device] = (local_ts, ts)
+            dprint('new time shift for {}: ({},{})'.format(device, local_ts, ts))
+
     def event(self, device, ts, num, temp, light):
         local_ts = time.time()
         self.__save_to_log(self.__day_event_log,
                            local_ts, device, ts, num, temp, light)
         if device not in self.__event_log:
             self.__event_log[device] = []
-        if device not in self.__time_shifts:
-            self.__time_shifts[device] = (local_ts, ts)
-            dprint('new time shift for {}: ({},{})'.format(device, local_ts, ts))
-            dprint('local time shift: {}'.format(time.time() - local_ts))
+        self.__save_time_shift(local_ts, device, ts)
         evlog = self.__event_log[device]
         local_num = len(evlog)
         diff = num - local_num
@@ -89,10 +91,11 @@ class EventLogger(object):
         if device in self.__time_shifts:
             local, remote = self.__time_shifts[device]
             local_ts = local + (ts - remote) / 1000.0
-            dprint('{} {} {} {}'.format(time.time(), local_ts, ts, remote))
+            dprint('{} {} {} {}'.format(time.time(), local, ts, remote))
             dprint('local time shift: {}'.format(time.time() - local_ts))
         else:
             local_ts = time.time()
+            self.__save_time_shift(local_ts, device, ts)
         self.__save_to_log(self.__day_summary_log,
                            local_ts, device, ts, num, temp, light)
         if device not in self.__summary_log:
