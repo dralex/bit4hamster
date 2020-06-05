@@ -19,12 +19,10 @@ if DEVICE == 'A':
     THRESHOLD = 12500
     SENSOR_LOG = True
     EVENT_LOG = False
-    SEND_DELAY = 0     		# 0 ms
 else:
     THRESHOLD = 12000
     SENSOR_LOG = False
     EVENT_LOG = True
-    SEND_DELAY = 0     		# 0 ms
 
 TIME_LIMIT = 400		# 0.4 sec
 SYNC_TIME = 1800000 		# 30 min
@@ -50,6 +48,7 @@ LIGHT = 3
 baseline = num = crossing = show_num = last_change = None
 num_buf = last_sync = file_num = None
 temp_sum = temp_count = light_sum = light_count = sensor_measure = sensor_sync = None
+single_event = None
 
 def update_display():
     if show_num:
@@ -98,6 +97,7 @@ def remove_files():
 def reset():
     global baseline, num, crossing, show_num, last_change, num_buf, last_sync # pylint: disable=global-statement
     global temp_sum, temp_count, sensor_measure, light_sum, light_count, sensor_sync # pylint: disable=global-statement
+    global single_event # pylint: disable=global-statement
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
@@ -105,6 +105,7 @@ def reset():
     temp_sum = temp_count = light_sum = light_count = 0
     num_buf = []
     last_change = last_sync = sensor_sync = sensor_measure = time.ticks_ms() # pylint: disable=no-member
+    single_event = False
     calculate_files()
     m.display.clear()
     update_display()
@@ -161,11 +162,10 @@ while True:
         delta = t - last_change
         if delta > TIME_LIMIT:
             num = num + 1
-            if EVENT_LOG:
-                if SEND_DELAY:
-                    m.sleep(SEND_DELAY)
+            if EVENT_LOG or not single_event:
                 send_single_event(RADIO_CODE_EVENT, t, num,
                                   get_temperature(), get_light())
+                single_event = True
             last_change = t
         update_display()
     elif crossing and abs(field - baseline) <= THRESHOLD:
