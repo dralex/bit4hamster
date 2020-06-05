@@ -130,3 +130,6 @@ class SerialProtocol(object):
                         self.logger.log_data(device, ts, num, temp, light)
                 else:
                     dprint('bad protocol code {}'.format(code))
+
+    def save_state(self):
+        self.logger.save()

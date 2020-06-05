@@ -30,13 +30,15 @@ class EventLogger(object):
         self.__event_log = None
         self.__summary_log = None
         self.__sheets = []
+        self.__time_shifts = []
         self.newday()
 
     def __sync_log_to_gsheets(self):
         try:
             sh = hamstersheet.HamsterSheet(self.__date,
                                            self.__event_log,
-                                           self.__summary_log)
+                                           self.__summary_log,
+                                           self.__time_shifts)
             url = sh.get_url()
             self.__sheets.append(url)
             dprint('uploaded sheet {}'.format(url))
@@ -51,6 +53,7 @@ class EventLogger(object):
         self.save()
         self.__event_log = {}
         self.__summary_log = {}
+        self.__time_shifts = []
         tt = datetime.datetime.now().timetuple()
         month = tt[1]
         day = tt[2]
@@ -72,6 +75,8 @@ class EventLogger(object):
                            local_ts, device, ts, num, temp, light)
         if device not in self.__event_log:
             self.__event_log[device] = []
+        if device not in self.__time_shifts:
+            self.__time_shifts[device] = (local_ts, ts)
         evlog = self.__event_log[device]
         local_num = len(evlog)
         diff = num - local_num
@@ -79,7 +84,12 @@ class EventLogger(object):
             evlog.append(local_ts)
 
     def summary(self, device, ts, num, temp, light):
-        local_ts = time.time()
+        if device in self.__time_shifts:
+            local, remote = self.__time_shifts
+            local_ts = local + (ts - remote) / 1000.0
+            dprint('local time shift: {}', time.time() - local_ts)
+        else:
+            local_ts = time.time()
         self.__save_to_log(self.__day_summary_log,
                            local_ts, device, ts, num, temp, light)
         if device not in self.__summary_log:
@@ -87,8 +97,13 @@ class EventLogger(object):
         self.__summary_log[device].append((local_ts, ts, num, temp, light))
 
     def __correct_summary_log(self, device, ts, num, temp, light):
+        if device in self.__time_shitfs:
+            local, remote = self.__time_shitfs[device]
+            local_ts = local_time - remote + ts / 1000.0
+        else:
+            local_ts = 0
         if device not in self.__summary_log:
-            self.__summary_log[device] = [(0, ts, num, temp, light)]
+            self.__summary_log[device] = [(local_ts, ts, num, temp, light)]
         else:
             sumlog = self.__summary_log[device]
             assert sumlog
@@ -99,11 +114,11 @@ class EventLogger(object):
                     return
                 if prev_ts < ts < remote_ts:
                     dprint('correcting log at position {} < {} < {}'.format(prev_ts, ts, remote_ts))
-                    sumlog.insert(i, (0, ts, num, temp, light))
+                    sumlog.insert(i, (local_ts, ts, num, temp, light))
                     return
                 prev_ts = remote_ts
             dprint('correcting log - appending data ts {}'.format(ts))
-            sumlog.append((0, ts, num, temp, light))
+            sumlog.append((local_ts, ts, num, temp, light))
 
     @classmethod
     def __save_to_log(cls, logname, local_ts, device, ts, num, temp, light):

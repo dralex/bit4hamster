@@ -27,10 +27,10 @@ class HamsterSheet(object):
     USER_ID = 'aleksey.fedoseev@gmail.com'
     SEPARATOR = ' '
 
-    def __init__(self, date, event_log, summary_log):
+    def __init__(self, date, event_log, summary_log, time_shift):
         self.__create_sheet(date)
         self.__share_to(self.USER_ID)
-        self.__insert_summary_log(summary_log)
+        self.__insert_summary_log(summary_log, time_shift)
         self.__insert_event_log(event_log)
 
     def get_url(self):
@@ -82,8 +82,8 @@ class HamsterSheet(object):
             if not keys:
                 return
             self.__insert_array('G1:{}1'.format(chr(ord('G') + len(keys) - 1)), keys)
-            for k in keys:
-                column = chr(ord('G') + k)
+            for i, k in enumerate(keys):
+                column = chr(ord('G') + i)
                 events = event_log[k]
                 self.__insert_array('{}1:{}{}'.format(column, column, len(events)),
                                     events)
@@ -92,24 +92,38 @@ class HamsterSheet(object):
         except google.auth.exceptions.TransportError as e:
             raise SheetException('error while saving events log: {}'.format(e))
 
-    def __insert_summary_log(self, summary_log):
+    def __insert_summary_log(self, summary_log, time_shifts):
         try:
             if 'A' not in summary_log:
                 return
             log = summary_log['A']
             if not log:
                 return
+            ts_array = []
+            for cell in summary_log:
+                ts_array.append(cell[1])
+            if 'A' in time_shifts:
+                time_shift = time_shifts['A'] 
+                time_diff = time_shift[0] - time_shift[1] / 1000.0
+            else:
+                time_diff = None
             matrix = []
-            for i, cell in enumerate(log):
-                tt = datetime.datetime.fromtimestamp(cell[0]).timetuple()
-                hour, minute, sec = tt[3:6]
-                if i == 0:
-                    s = '0'
-                else:
-                    s = '=C{}-C{}'.format(i + 2, i + 1)
-                matrix.append(('{:02d}:{:02d}:{:02d}'.format(hour, minute, sec),
-                               cell[1], cell[2], cell[3], cell[4], s))
-                self.__insert_matrix('A1:F{}'.format(len(log)), matrix)
+            for i, ts in enumerate(sorted(ts_array)):
+                for cell in summary_log:
+                    if cell[1] == ts:
+                        if time_diff:
+                            local_ts = time_diff + ts / 1000.0
+                        else:
+                            local_ts = ts
+                        tt = datetime.datetime.fromtimestamp(local_ts).timetuple()
+                        hour, minute, sec = tt[3:6]
+                        if i == 0:
+                            s = '0'
+                        else:
+                            s = '=C{}-C{}'.format(i + 1, i)
+                        matrix.append(('{:02d}:{:02d}:{:02d}'.format(hour, minute, sec),
+                                       ts, cell[2], cell[3], cell[4], s))
+            self.__insert_matrix('A1:F{}'.format(len(log)), matrix)
         except gspread.exceptions.GSpreadException as e:
             raise SheetException('error while saving summary log: {}'.format(e))
         except google.auth.exceptions.TransportError as e:

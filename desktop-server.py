@@ -69,7 +69,8 @@ if __name__ == '__main__':
         protocol.listen()
 
     except KeyboardInterrupt:
-        if mode == LISTEN:
+        dprint('keyboard interrupt. saving state...')
+        if mode == MODE_LISTEN:
             protocol.save_state()
     except SerialException as e:
         dprint('serial error: {}'.format(e))
