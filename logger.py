@@ -77,7 +77,7 @@ class EventLogger(object):
             shift = self.__time_shifts[device]
             if shift[2] is None:
                 assert local_ts > shift[0]
-                ts_correction = 1.0 - (ts - shift[1]) / (local_ts - shift[0])
+                ts_correction = 1.0 - (ts - shift[1]) / (1000 * (local_ts - shift[0]))
                 dprint('time shift correction {}'.format(ts_correction))
                 shift[2] = ts_correction
 
