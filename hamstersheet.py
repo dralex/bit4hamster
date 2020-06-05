@@ -7,6 +7,7 @@
 # Author: Alexey Fedoseev <aleksey@fedoseev.net>, 2020
 # -----------------------------------------------------------------------------
 
+import time
 import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -104,7 +105,9 @@ class HamsterSheet(object):
                 ts_array.append(cell[1])
             if 'A' in time_shifts:
                 time_shift = time_shifts['A']
-                time_diff = time_shift[0] - time_shift[1] / 1000.0
+                correction = 0.0 if time_shift[2] is None else time_shift[2]
+                time_diff = (time_shift[0] - time_shift[1] / 1000.0 -
+                             correction * (time.time() - time_shift[0]))
             else:
                 time_diff = None
             matrix = []

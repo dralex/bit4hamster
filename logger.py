@@ -71,8 +71,15 @@ class EventLogger(object):
 
     def __save_time_shift(self, local_ts, device, ts):
         if device not in self.__time_shifts:
-            self.__time_shifts[device] = (local_ts, ts)
+            self.__time_shifts[device] = [local_ts, ts, None]
             dprint('new time shift for {}: ({},{})'.format(device, local_ts, ts))
+        else:
+            shift = self.__time_shifts[device]
+            if shift[2] is None:
+                assert local_ts > shift[0]
+                ts_correction = 1.0 - (ts - shift[1]) / (local_ts - shift[0])
+                dprint('time shift correction {}'.format(ts_correction))
+                shift[2] = ts_correction
 
     def event(self, device, ts, num, temp, light):
         local_ts = time.time()
@@ -89,10 +96,13 @@ class EventLogger(object):
 
     def summary(self, device, ts, num, temp, light):
         if device in self.__time_shifts:
-            local, remote = self.__time_shifts[device]
+            local, remote, correction = self.__time_shifts[device]
+            if correction is None:
+                correction = 0.0
             local_ts = local + (ts - remote) / 1000.0
-            dprint('{} {} {} {}'.format(time.time(), local, ts, remote))
-            dprint('local time shift: {}'.format(time.time() - local_ts))
+            dprint('local time shift w/o correction: {}'.format(time.time() - local_ts))
+            local_ts -= correction * (time.time() - local)
+            dprint('local time shift with correction: {}'.format(time.time() - local_ts))
         else:
             local_ts = time.time()
             self.__save_time_shift(local_ts, device, ts)
