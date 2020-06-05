@@ -28,6 +28,7 @@ TIME_LIMIT = 400		# 0.4 sec
 SYNC_TIME = 1800000 		# 30 min
 SENSOR_SYNC_TIME = 300000 	# 5 min
 SENSOR_MEASURE_TIME = 10000 	# 10 sec
+POWER_OFF_TIME = 12 * 3600 * 1000 # 12 hours
 
 LOG_FILENAME_PREFIX = 'log' + DEVICE
 LOG_FILENAME = LOG_FILENAME_PREFIX + '{}.txt'
@@ -48,6 +49,7 @@ LIGHT = 3
 baseline = num = crossing = show_num = last_change = None
 num_buf = last_sync = file_num = None
 temp_sum = temp_count = light_sum = light_count = sensor_measure = sensor_sync = None
+power_is_off = start_time = None
 
 def update_display():
     if show_num:
@@ -96,17 +98,23 @@ def remove_files():
 def reset():
     global baseline, num, crossing, show_num, last_change, num_buf, last_sync # pylint: disable=global-statement
     global temp_sum, temp_count, sensor_measure, light_sum, light_count, sensor_sync # pylint: disable=global-statement
+    global start_time, power_is_off  # pylint: disable=global-statement
     baseline = m.compass.get_field_strength() # Take a baseline reading of magnetic strength
     num = 0
     crossing = False
     show_num = False
     temp_sum = temp_count = light_sum = light_count = 0
     num_buf = []
-    last_change = last_sync = sensor_sync = sensor_measure = time.ticks_ms() # pylint: disable=no-member
+    last_change = last_sync = sensor_sync = sensor_measure = start_time = time.ticks_ms() # pylint: disable=no-member
     calculate_files()
     m.display.clear()
     update_display()
+    radio.on()
+    radio.config(length=RADIO_BUFFER,
+                 queue=RADIO_QUEUE,
+                 channel=RADIO_CHANNEL)
     send_log(last_change, num, get_temperature(), get_light())
+    power_is_off = False
 
 def send_single_event(typ, lsync, n, tmp, l):
     radio_buf = (lsync.to_bytes(4, DATA_BYTES_ORDER) + # pylint: disable=no-member
@@ -146,47 +154,59 @@ def sync_data():
     f.close()
     last_sync = time.ticks_ms() # pylint: disable=no-member
 
-radio.on()
-radio.config(length=RADIO_BUFFER,
-             queue=RADIO_QUEUE,
-             channel=RADIO_CHANNEL)
+def power_off():
+    global power_is_off # pylint: disable=global-statement
+    send_full_log()
+    m.display.clear()
+    radio.off()
+    power_is_off = True
+
 reset()
 while True:
-    field = m.compass.get_field_strength()
-    t = time.ticks_ms() # pylint: disable=no-member
+    if not power_is_off:
+        t = time.ticks_ms() # pylint: disable=no-member
 
-    if not crossing and abs(field - baseline) > THRESHOLD:
-        crossing = True
-        delta = t - last_change
-        if delta > TIME_LIMIT:
-            num = num + 1
-            if EVENT_LOG:
-                send_single_event(RADIO_CODE_EVENT, t, num,
-                                  get_temperature(), get_light())
-            last_change = t
-        update_display()
-    elif crossing and abs(field - baseline) <= THRESHOLD:
-        crossing = False
-        update_display()
+        field = m.compass.get_field_strength()
 
-    if t - last_sync >= SYNC_TIME:
-        sync_data()
+        if not crossing and abs(field - baseline) > THRESHOLD:
+            crossing = True
+            delta = t - last_change
+            if delta > TIME_LIMIT:
+                num = num + 1
+                if EVENT_LOG:
+                    send_single_event(RADIO_CODE_EVENT, t, num,
+                                      get_temperature(), get_light())
+                last_change = t
+            update_display()
+        elif crossing and abs(field - baseline) <= THRESHOLD:
+            crossing = False
+            update_display()
 
-    if SENSOR_LOG:
-        if t - sensor_sync >= SENSOR_SYNC_TIME:
-            send_log(t, num, get_temperature(), get_light())
-        if t - sensor_measure >= SENSOR_MEASURE_TIME:
-            update_temperature()
-            update_light()
+        if t - last_sync >= SYNC_TIME:
+            sync_data()
 
-    if m.button_a.was_pressed():
-        baseline = m.compass.get_field_strength() # Update baseline
-        show_num = not show_num
-        if not show_num:
-            m.display.clear()
-        else:
-            send_full_log()
-        update_display()
-    elif m.button_b.was_pressed():
+        if SENSOR_LOG:
+            if t - sensor_sync >= SENSOR_SYNC_TIME:
+                send_log(t, num, get_temperature(), get_light())
+            if t - sensor_measure >= SENSOR_MEASURE_TIME:
+                update_temperature()
+                update_light()
+
+        if t - start_time >= POWER_OFF_TIME:
+            power_off()
+            continue
+
+        if m.button_a.was_pressed():
+            baseline = m.compass.get_field_strength() # Update baseline
+            show_num = not show_num
+            if not show_num:
+                m.display.clear()
+            else:
+                send_full_log()
+            update_display()
+    else:
+        m.sleep(500)
+
+    if m.button_b.was_pressed():
         remove_files()
         m.reset()
