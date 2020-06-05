@@ -77,6 +77,7 @@ class EventLogger(object):
             self.__event_log[device] = []
         if device not in self.__time_shifts:
             self.__time_shifts[device] = (local_ts, ts)
+            dprint('new time shift for {}: ({},{})'.format(device, local_ts, ts))
         evlog = self.__event_log[device]
         local_num = len(evlog)
         diff = num - local_num
