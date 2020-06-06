@@ -7,7 +7,6 @@
 # Author: Alexey Fedoseev <aleksey@fedoseev.net>, 2020
 # -----------------------------------------------------------------------------
 
-import time
 import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -28,10 +27,10 @@ class HamsterSheet(object):
     USER_ID = 'aleksey.fedoseev@gmail.com'
     SEPARATOR = ' '
 
-    def __init__(self, date, event_log, summary_log, time_shift):
+    def __init__(self, date, event_log, summary_log):
         self.__create_sheet(date)
         self.__share_to(self.USER_ID)
-        self.__insert_summary_log(summary_log, time_shift)
+        self.__insert_summary_log(summary_log)
         self.__insert_event_log(event_log)
 
     def get_url(self):
@@ -93,7 +92,7 @@ class HamsterSheet(object):
         except google.auth.exceptions.TransportError as e:
             raise SheetException('error while saving events log: {}'.format(e))
 
-    def __insert_summary_log(self, summary_log, time_shifts):
+    def __insert_summary_log(self, summary_log):
         try:
             if 'A' not in summary_log:
                 return
@@ -103,22 +102,11 @@ class HamsterSheet(object):
             ts_array = []
             for cell in log:
                 ts_array.append(cell[1])
-            if 'A' in time_shifts:
-                local, remote = time_shifts['A']
-                time_diff = local - remote / 1000.0
-                delta = time.time() - local
-            else:
-                time_diff = None
             matrix = []
             for i, ts in enumerate(sorted(ts_array)):
                 for cell in log:
                     if cell[1] == ts:
-                        if time_diff:
-                            correction = 1.0 - (ts - remote) / (1000.0 * delta)
-                            local_ts = time_diff + ts / 1000.0 + correction * delta
-                        else:
-                            local_ts = ts
-                        tt = datetime.datetime.fromtimestamp(local_ts).timetuple()
+                        tt = datetime.datetime.fromtimestamp(cell[0]).timetuple()
                         hour, minute, sec = tt[3:6]
                         if i == 0:
                             s = '0'
