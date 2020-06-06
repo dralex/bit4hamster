@@ -145,6 +145,7 @@ def send_full_log():
 
 def sync_data():
     global last_sync # pylint: disable=global-statement
+    last_sync = time.ticks_ms() # pylint: disable=no-member
     a = (last_sync, num, get_temperature(), get_light())
     send_log(*a)
     num_buf.append(a)
@@ -152,7 +153,6 @@ def sync_data():
     for n in num_buf:
         f.write("{}\n".format(' '.join(map(str, n))))
     f.close()
-    last_sync = time.ticks_ms() # pylint: disable=no-member
 
 def power_off():
     global power_is_off # pylint: disable=global-statement
