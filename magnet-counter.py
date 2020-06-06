@@ -14,15 +14,9 @@ import microbit as m # pylint: disable=import-error
 import radio # pylint: disable=import-error
 
 DEVICE = 'A'
-if DEVICE == 'A':
-    # Choose the appropriate value based on the cage & wheel configuration
-    THRESHOLD = 12500
-    SENSOR_LOG = True
-    EVENT_LOG = False
-else:
-    THRESHOLD = 12000
-    SENSOR_LOG = False
-    EVENT_LOG = True
+# Choose the appropriate value based on the cage & wheel configuration
+THRESHOLD = 12500
+SENSOR_LOG = True
 
 TIME_LIMIT = 400		# 0.4 sec
 SYNC_TIME = 1800000 		# 30 min
@@ -173,7 +167,7 @@ while True:
             delta = t - last_change
             if delta > TIME_LIMIT:
                 num = num + 1
-                if EVENT_LOG:
+                if not SENSOR_LOG:
                     send_single_event(RADIO_CODE_EVENT, t, num,
                                       get_temperature(), get_light())
                 last_change = t
