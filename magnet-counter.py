@@ -38,19 +38,23 @@ RADIO_BUFFER = 32
 RADIO_QUEUE = 2
 RADIO_CHANNEL = 1
 
-LIGHT = 3
-
 baseline = num = crossing = show_num = last_change = None
 num_buf = last_sync = file_num = None
 temp_sum = light_sum = measure_count = sensor_measure = sensor_sync = None
 power_is_on = start_time = None
 
 def update_display():
-    if show_num:
-        m.display.show('{}.'.format(num), wait=False, loop=True)
+    if power_is_on:
+        if show_num:
+            m.display.show('{}.'.format(num), wait=False, loop=True)
+        else:
+            m.display.set_pixel(0, 4, 2)
+            m.display.set_pixel(4, 4, 2 if crossing else 0)
     else:
-        m.display.set_pixel(0, 4, LIGHT)
-        m.display.set_pixel(4, 4, LIGHT if crossing else 0)
+        m.display.set_pixel(0, 4, 0)
+        m.sleep(1000)
+        m.display.set_pixel(0, 4, 1)
+        m.sleep(1000)
 
 def get_sensors():
     global temp_sum, light_sum, measure_count  # pylint: disable=global-statement
@@ -186,9 +190,7 @@ while True:
                 send_full_log()
             update_display()
     else:
-        m.display.set_pixel(0, 4, 1)
-        m.sleep(1000)
-        m.display.set_pixel(0, 4, 0)
+        update_display()
 
     if m.button_b.was_pressed():
         remove_files()
