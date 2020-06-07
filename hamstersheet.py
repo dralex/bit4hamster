@@ -99,21 +99,16 @@ class HamsterSheet(object):
             log = summary_log['A']
             if not log:
                 return
-            ts_array = []
-            for cell in log:
-                ts_array.append(cell[1])
             matrix = []
-            for i, ts in enumerate(sorted(ts_array)):
-                for cell in log:
-                    if cell[1] == ts:
-                        tt = datetime.datetime.fromtimestamp(cell[0]).timetuple()
-                        hour, minute, sec = tt[3:6]
-                        if i == 0:
-                            s = '0'
-                        else:
-                            s = '=C{}-C{}'.format(i + 1, i)
-                        matrix.append(('{:02d}:{:02d}:{:02d}'.format(hour, minute, sec),
-                                       ts, cell[2], cell[3], cell[4], s))
+            for i, cell in enumerate(log):
+                tt = datetime.datetime.fromtimestamp(cell[0]).timetuple()
+                hour, minute, sec = tt[3:6]
+                if i == 0:
+                    s = '0'
+                else:
+                    s = '=C{}-C{}'.format(i + 1, i)
+                    matrix.append(('{:02d}:{:02d}:{:02d}'.format(hour, minute, sec),
+                                   cell[1], cell[2], cell[3], cell[4], s))
             self.__insert_matrix('A1:F{}'.format(len(log)), matrix)
         except gspread.exceptions.GSpreadException as e:
             raise SheetException('error while saving summary log: {}'.format(e))
