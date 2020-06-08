@@ -107,8 +107,8 @@ class HamsterSheet(object):
                     s = '0'
                 else:
                     s = '=C{}-C{}'.format(i + 1, i)
-                    matrix.append(('{:02d}:{:02d}:{:02d}'.format(hour, minute, sec),
-                                   cell[1], cell[2], cell[3], cell[4], s))
+                matrix.append(('{:02d}:{:02d}:{:02d}'.format(hour, minute, sec),
+                               cell[1], cell[2], cell[3], cell[4], s))
             self.__insert_matrix('A1:F{}'.format(len(log)), matrix)
         except gspread.exceptions.GSpreadException as e:
             raise SheetException('error while saving summary log: {}'.format(e))
