@@ -65,15 +65,14 @@ class SerialProtocol(object):
 
     def __check_day(self):
         dt = datetime.datetime.now()
-        if self.__prev_date is None:
-            self.__prev_date = dt
-        else:
+        if self.__prev_date is not None:
             tt1 = self.__prev_date.timetuple()
-            tt2 = self.__prev_date.timetuple()
+            tt2 = dt.timetuple()
             if tt1[3] < 12 and tt2[3] >= 12:
                 dprint('-' * 80)
                 dprint('starting new day {:02d}.{:02d}'.format(tt2[2], tt2[1]))
                 self.logger.newday()
+        self.__prev_date = dt
 
     def listen(self):
         while True:
